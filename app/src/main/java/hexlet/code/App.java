@@ -2,7 +2,7 @@ package hexlet.code;
 
 import io.javalin.Javalin;
 
-public class App {
+public final class App {
     private static int getPort() {
         String port = System.getenv().getOrDefault("PORT", "8000");
         return Integer.valueOf(port);
