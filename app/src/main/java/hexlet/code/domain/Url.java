@@ -21,9 +21,8 @@ public final class Url extends Model {
 
     }
 
-    public Url(String name, Instant createdAt) {
+    public Url(String name) {
         this.name = name;
-        this.createdAt = createdAt;
     }
 
     public long getId() {
