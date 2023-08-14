@@ -28,7 +28,7 @@
         </table>
 
         <h2 class="mt-5">Проверки</h2>
-        <form method="post" action="/urls/1/checks">
+        <form th:action="@{/urls/{id}/checks(id=*{getId()})}" method="post">
             <button type="submit" class="btn btn-primary">Запустить проверку</button>
         </form>
 
@@ -42,13 +42,13 @@
                 <th class="col-2">Дата проверки</th>
             </tr></thead>
             <tbody>
-            <tr>
-                <td>1</td>
-                <td>200</td>
-                <td>Moved</td>
-                <td></td>
-                <td></td>
-                <td>04/08/2023 10:09</td>
+            <tr th:each="urlCheck : ${url.getUrlChecks()}">
+                <td th:text="${urlCheck.getId()}"></td>
+                <td th:text="${urlCheck.getStatusCode()}"></td>
+                <td th:text="${#strings.abbreviate(urlCheck.getTitle(), 50)}"></td>
+                <td th:text="${urlCheck.getH1()}"></td>
+                <td th:text="${#strings.abbreviate(urlCheck.getDescription(), 30)}"></td>
+                <td th:text="${#temporals.format(urlCheck.getCreatedAt(), 'dd/MM/yyyy HH:mm')}"></td>
             </tr>
             </tbody>
         </table>
