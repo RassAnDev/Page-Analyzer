@@ -31,10 +31,4 @@ report:
 check-updates:
 	make -C app check-updates
 	
-image-build:
-	make -C app image-build
-	
-image-push:
-	make -C app image-push
-	
 .PHONY: build
