@@ -25,18 +25,17 @@ import java.nio.file.Paths;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public final class AppTest {
+    private static Javalin app;
+    private static String baseUrl;
+    private static Database database;
+
+    private static MockWebServer server;
 
     // Выполняем проверку, что тестовая среда работает корректно
     @Test
     void testInit() {
         assertThat(true).isEqualTo(true);
     }
-
-    private static Javalin app;
-    private static String baseUrl;
-    private static Database database;
-
-    private static MockWebServer server;
 
     // Выполняем настройку тестовой среды, запускаем приложение, базу данных и MockWebServer
     @BeforeAll
@@ -110,16 +109,30 @@ public final class AppTest {
         void testShow() {
             HttpResponse<String> response;
             String body;
+            Url actualUrl;
+            int idForCheck = Integer.MIN_VALUE;
+
+            actualUrl = new QUrl()
+                    .name.equalTo("https://javalin.io")
+                    .findOne();
+
+            assertThat(actualUrl).isNotNull();
 
             // Проверяем, что страница отображается корректно
-            response = Unirest.get(baseUrl + "/urls/1").asString();
+            response = Unirest.get(baseUrl + "/urls/" + actualUrl.getId()).asString();
             body = response.getBody();
 
             assertThat(response.getStatus()).isEqualTo(200);
             assertThat(body).contains("https://javalin.io");
             assertThat(body).contains("08/08/2023 15:59");
 
-            response = Unirest.get(baseUrl + "/urls/2").asString();
+            actualUrl = new QUrl()
+                    .name.equalTo("https://www.thymeleaf.org")
+                    .findOne();
+
+            assertThat(actualUrl).isNotNull();
+
+            response = Unirest.get(baseUrl + "/urls/" + actualUrl.getId()).asString();
             body = response.getBody();
 
             assertThat(response.getStatus()).isEqualTo(200);
@@ -127,8 +140,14 @@ public final class AppTest {
             assertThat(body).contains("08/08/2023 16:00");
 
             // Проверяем наличие ошибки при запросе к несуществующей в списке странице
-            response = Unirest.get(baseUrl + "/urls/5").asString();
-            assertThat(response.getStatus()).isEqualTo(404);
+            actualUrl = new QUrl()
+                    .id.equalTo(idForCheck)
+                            .findOne();
+
+            if (actualUrl == null) {
+                response = Unirest.get(baseUrl + "/urls/" + idForCheck).asString();
+                assertThat(response.getStatus()).isEqualTo(404);
+            }
         }
 
         @Test
@@ -219,6 +238,8 @@ public final class AppTest {
             HttpResponse<String> responseGet;
             HttpResponse<Empty> responseCheckPost;
             HttpResponse<String> responseCheckGet;
+            int idForCheck = Integer.MIN_VALUE;
+            Url actualUrl;
             String checkBody;
 
             responsePost = Unirest
@@ -236,7 +257,7 @@ public final class AppTest {
             assertThat(body).contains(url);
             assertThat(body).contains("Страница успешно добавлена");
 
-            Url actualUrl = new QUrl()
+            actualUrl = new QUrl()
                     .name.equalTo(url)
                     .findOne();
 
@@ -271,10 +292,16 @@ public final class AppTest {
             assertThat(lastUrlCheck.getStatusCode()).isEqualTo(200);
 
             // Проверяем, что выводится ошибка при попытке добавления проверки для несуществующего url
-            responseCheckPost = Unirest
-                    .post(baseUrl + "/urls/5/checks")
-                    .asEmpty();
-            assertThat(responseCheckPost.getStatus()).isEqualTo(404);
+            actualUrl = new QUrl()
+                    .id.equalTo(idForCheck)
+                    .findOne();
+            if (actualUrl == null) {
+                responseCheckPost = Unirest
+                        .post(baseUrl + "/urls/" + idForCheck + "/checks")
+                        .asEmpty();
+
+                assertThat(responseCheckPost.getStatus()).isEqualTo(404);
+            }
         }
     }
 }
